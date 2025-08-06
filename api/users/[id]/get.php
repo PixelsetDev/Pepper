@@ -5,7 +5,6 @@ use Starlight\Database\SQL;
 $db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 $uriParts = explode('/',$_SERVER['REQUEST_URI']);
-
 $username = $db->escape($uriParts[array_key_last($uriParts)]);
 
 $query = $db->query("SELECT `name`, `username`, `avatar` FROM `users` WHERE `username` = '".$username."'");

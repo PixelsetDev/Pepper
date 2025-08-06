@@ -25,6 +25,11 @@ class Routes {
     private array $collections;
 
     /**
+     * @var SQL Database.
+     */
+    private SQL $db;
+
+    /**
      * Registers the routes.
      * @return void
      */
@@ -32,12 +37,12 @@ class Routes {
     {
         $this->router = new Router();
 
-        $db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        $this->db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
-        $uq = $db->query('SELECT `username` FROM `users`');
+        $uq = $this->db->query('SELECT `username` FROM `users`');
         if ($uq->num_rows != 0) { $this->users = $uq->fetch_all(MYSQLI_ASSOC); }
 
-        $cq = $db->query('SELECT `slug` FROM `collections` WHERE `visible` = 1');
+        $cq = $this->db->query('SELECT `slug` FROM `collections` WHERE `visible` = 1');
         if ($cq->num_rows != 0) { $this->collections = $cq->fetch_all(MYSQLI_ASSOC); }
 
         $this->users();
@@ -65,6 +70,14 @@ class Routes {
     private function recipes(): void
     {
         $this->router->GET('/recipes', '/api/recipes/get.php');
+
+        foreach ($this->users as $user) {
+            $rq = $this->db->query("SELECT `slug` FROM `recipes` WHERE `uuid` = '".new Users()->usernameToUuid($user['username'])."'");
+            if ($rq->num_rows != 0) { $recipes = $rq->fetch_all(MYSQLI_ASSOC); }
+            foreach ($recipes as $recipe) {
+                $this->router->GET('/recipes/' . $user['username'] . '/' . $recipe['slug'], '/api/recipes/[user]/[slug]/get.php');
+            }
+        }
     }
 
     /**
