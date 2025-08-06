@@ -1,0 +1,3 @@
+[submodule "starlight"]
+	path = starlight
+	url = https://github.com/pixelsetdev/starlight
