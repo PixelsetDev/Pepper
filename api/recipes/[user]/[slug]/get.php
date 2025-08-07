@@ -9,7 +9,7 @@ $uriParts = explode('/',$_SERVER['REQUEST_URI']);
 $recipeSlug = $db->escape($uriParts[array_key_last($uriParts)]);
 $username = $db->escape($uriParts[array_key_last($uriParts)-1]);
 
-$query = $db->query("SELECT `uuid`, `title`, `description`, `ingredients`, `steps`, `prep`, `cook`, `servings`, `vegetarian`, `vegan`, `dairy_free`, `gluten_free`, `difficulty`, `date` FROM recipes WHERE slug = '".$recipeSlug."' AND `uuid` = '".new Users()->usernameToUuid($username)."' AND `visibility` = 3");
+$query = $db->query("SELECT `uuid`, `title`, `description`, `tips`, `ingredients`, `steps`, `prep`, `cook`, `servings`, `vegetarian`, `vegan`, `dairy_free`, `gluten_free`, `difficulty`, `date` FROM recipes WHERE slug = '".$recipeSlug."' AND `uuid` = '".new Users()->usernameToUuid($username)."' AND `visibility` = 3");
 
 if ($query->num_rows > 0) {
     $results = $query->fetch_object();
