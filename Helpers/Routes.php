@@ -76,6 +76,7 @@ class Routes {
             if ($rq->num_rows != 0) { $recipes = $rq->fetch_all(MYSQLI_ASSOC); }
             foreach ($recipes as $recipe) {
                 $this->router->GET('/recipes/' . $user['username'] . '/' . $recipe['slug'], '/api/recipes/[user]/[slug]/get.php');
+                $this->router->GET('/recipes/' . $user['username'] . '/' . $recipe['slug'] . '/reviews', '/api/recipes/[user]/[slug]/reviews/get.php');
             }
         }
     }
