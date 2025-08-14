@@ -48,6 +48,7 @@ class Routes {
         $this->users();
         $this->recipes();
         $this->collections();
+        $this->mealplans();
     }
 
     /**
@@ -92,5 +93,14 @@ class Routes {
         foreach ($this->collections as $collection) {
             $this->router->GET('/collections/'.$collection['slug'], '/api/collections/[id]/get.php');
         }
+    }
+
+    /**
+     * /meal-plans routes
+     * @return void
+     */
+    private function mealplans(): void
+    {
+        $this->router->GET('/meal-plans', '/api/meal-plans/get.php');
     }
 }

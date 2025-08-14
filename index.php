@@ -7,6 +7,7 @@
 #   ██      ██████  ██      ██      ██████  ██  ██
 #           Copyright (c) 2025 Pixelset
 
+ob_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -14,12 +15,16 @@ error_reporting(E_ALL);
 use Pepper\Helpers\Routes;
 use Starlight\HTTP\Type;
 
+require 'vendor/autoload.php';
+
+require_once __DIR__ . '/starlight/Authentication/LogTo.php';
 require_once __DIR__ . '/starlight/HTTP/Router.php';
 require_once __DIR__ . '/starlight/HTTP/Type.php';
 require_once __DIR__ . '/starlight/Database/SQL.php';
 
 require_once __DIR__ . '/Helpers/Routes.php';
 require_once __DIR__ . '/Helpers/Users.php';
+require_once __DIR__ . '/Helpers/Auth.php';
 
 require_once __DIR__ . '/settings.php';
 
