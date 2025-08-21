@@ -102,5 +102,12 @@ class Routes {
     private function mealplans(): void
     {
         $this->router->GET('/meal-plans', '/api/meal-plans/get.php');
+
+        $this->router->POST('/meal-plans/item', '/api/meal-plans/item/post.php');
+        $this->router->DELETE('/meal-plans/item', '/api/meal-plans/item/delete.php');
+
+        //$this->router->GET('/meal-plans/share', '/api/meal-plans/share/get.php');
+
+        //$this->router->GET('/meal-plans/requests', '/api/meal-plans/requests/get.php');
     }
 }

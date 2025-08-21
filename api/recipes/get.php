@@ -2,6 +2,7 @@
 
 use Pepper\Helpers\Users;
 use Starlight\Database\SQL;
+use Starlight\HTTP\Response;
 
 $db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $userHelper = new Users();
@@ -55,6 +56,7 @@ if ($query->num_rows > 0) {
         $row->author = [
             'username' => $userHelper->uuidToUsername($row->uuid),
             'name' => $userHelper->uuidToName($row->uuid),
+            'uuid' => $row->uuid,
         ];
         unset($row->uuid);
         $recipes[] = $row;
@@ -65,8 +67,9 @@ if ($query->num_rows > 0) {
         "count" => $query->num_rows,
     ]);
 } else {
+    new Response()->http204();
     echo json_encode([
-        "status" => ["code" => "404 Not Found", "message" => "No recipes found."],
+        "status" => ["code" => "204 No Content", "message" => "No recipes found."],
         "data" => null,
         "count" => 0,
     ]);
