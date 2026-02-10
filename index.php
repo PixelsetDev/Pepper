@@ -5,7 +5,7 @@
 #   ██████  ██████  ██████  ██████  ██████  ████
 #   ██      ██      ██      ██      ██      ██  ██
 #   ██      ██████  ██      ██      ██████  ██  ██
-#           Copyright (c) 2025 Pixelset
+#        Copyright (c) 2025 - 2026 Pixelset
 
 ob_start();
 ini_set('display_errors', 1);
