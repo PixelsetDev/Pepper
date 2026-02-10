@@ -2,6 +2,7 @@
 
 namespace Pepper\Helpers;
 
+use Starlight\Database\MySQL;
 use Starlight\Database\SQL;
 use Starlight\HTTP\Router;
 
@@ -25,9 +26,9 @@ class Routes {
     private array $collections;
 
     /**
-     * @var SQL Database.
+     * @var MySQL Database.
      */
-    private SQL $db;
+    private MySQL $db;
 
     /**
      * Registers the routes.
@@ -37,13 +38,13 @@ class Routes {
     {
         $this->router = new Router();
 
-        $this->db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        $this->db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
-        $uq = $this->db->query('SELECT `username` FROM `users`');
-        if ($uq->num_rows != 0) { $this->users = $uq->fetch_all(MYSQLI_ASSOC); }
+        $uq = $this->db->fetchAll('SELECT `username` FROM `users`');
+        if ($this->db->numRows() != 0) { $this->users = $uq; }
 
-        $cq = $this->db->query('SELECT `slug` FROM `collections` WHERE `visible` = 1');
-        if ($cq->num_rows != 0) { $this->collections = $cq->fetch_all(MYSQLI_ASSOC); }
+        $cq = $this->db->fetchAll('SELECT `slug` FROM `collections` WHERE `visible` = 1');
+        if ($this->db->numRows() != 0) { $this->collections = $cq; }
 
         $this->users();
         $this->recipes();
@@ -57,10 +58,10 @@ class Routes {
      */
     private function users(): void
     {
-        $this->router->GET('/users','/api/users/get.php');
+        $this->router->GET('/user','/api/user/get.php');
 
         foreach ($this->users as $user) {
-            $this->router->GET('/users/'.$user['username'], '/api/users/[id]/get.php');
+            $this->router->GET('/user/'.$user['username'], '/api/user/[id]/get.php');
         }
     }
 
@@ -73,41 +74,13 @@ class Routes {
         $this->router->GET('/recipes', '/api/recipes/get.php');
 
         foreach ($this->users as $user) {
-            $rq = $this->db->query("SELECT `slug` FROM `recipes` WHERE `uuid` = '".new Users()->usernameToUuid($user['username'])."'");
-            if ($rq->num_rows != 0) { $recipes = $rq->fetch_all(MYSQLI_ASSOC); }
-            foreach ($recipes as $recipe) {
-                $this->router->GET('/recipes/' . $user['username'] . '/' . $recipe['slug'], '/api/recipes/[user]/[slug]/get.php');
-                $this->router->GET('/recipes/' . $user['username'] . '/' . $recipe['slug'] . '/reviews', '/api/recipes/[user]/[slug]/reviews/get.php');
+            $recipes = $this->db->fetchAll("SELECT `slug` FROM `recipes` WHERE `uuid` = '".new Users()->usernameToUuid($user['username'])."'");
+            if ($this->db->numRows() != 0) {
+                foreach ($recipes as $recipe) {
+                    $this->router->GET('/recipe/' . $user['username'] . '/' . $recipe['slug'], '/api/recipes/[user]/[slug]/get.php');
+                    $this->router->GET('/recipe/' . $user['username'] . '/' . $recipe['slug'] . '/reviews', '/api/recipes/[user]/[slug]/reviews/get.php');
+                }
             }
         }
-    }
-
-    /**
-     * /collections routes
-     * @return void
-     */
-    private function collections(): void
-    {
-        $this->router->GET('/collections', '/api/collections/get.php');
-
-        foreach ($this->collections as $collection) {
-            $this->router->GET('/collections/'.$collection['slug'], '/api/collections/[id]/get.php');
-        }
-    }
-
-    /**
-     * /meal-plans routes
-     * @return void
-     */
-    private function mealplans(): void
-    {
-        $this->router->GET('/meal-plans', '/api/meal-plans/get.php');
-
-        $this->router->POST('/meal-plans/item', '/api/meal-plans/item/post.php');
-        $this->router->DELETE('/meal-plans/item', '/api/meal-plans/item/delete.php');
-
-        //$this->router->GET('/meal-plans/share', '/api/meal-plans/share/get.php');
-
-        //$this->router->GET('/meal-plans/requests', '/api/meal-plans/requests/get.php');
     }
 }
