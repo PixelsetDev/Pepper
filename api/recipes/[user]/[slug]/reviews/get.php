@@ -1,18 +1,19 @@
 <?php
 
 use Pepper\Helpers\Users;
-use Starlight\Database\SQL;
+use Starlight\Database\MySQL;
 
-$db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 $uriParts = explode('/',$_SERVER['REQUEST_URI']);
-$recipeSlug = $db->escape($uriParts[array_key_last($uriParts)-1]);
-$username = $db->escape($uriParts[array_key_last($uriParts)-2]);
+$recipeSlug = $uriParts[array_key_last($uriParts)-1];
+$username = $uriParts[array_key_last($uriParts)-2];
 
-$query = $db->query("SELECT `rating`, `comment`, `uuid` FROM ratings WHERE recipe = '".$recipeSlug."' AND `author` = '".new Users()->usernameToUuid($username)."'");
+$query = $db->run("SELECT `rating`, `comment`, `uuid` FROM ratings WHERE recipe = ? AND `author` = ?",[$recipeSlug,new Users()->usernameToUuid($username)]);
+$numRows = $db->numRows();
 
-if ($query->num_rows > 0) {
-    $results = $query->fetch_all(MYSQLI_ASSOC);
+if ($numRows > 0) {
+    $results = $query->fetchAll(MYSQLI_ASSOC);
 
     $userHelper = new Users();
 
@@ -26,7 +27,7 @@ if ($query->num_rows > 0) {
     echo json_encode([
         "status" => ["code" => "200 OK", "message" => null],
         "data" => $results,
-        "count" => $query->num_rows,
+        "count" => $numRows,
     ]);
 } else {
     echo json_encode([

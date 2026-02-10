@@ -1,18 +1,19 @@
 <?php
 
 use Pepper\Helpers\Users;
-use Starlight\Database\SQL;
+use Starlight\Database\MySQL;
 
-$db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 $uriParts = explode('/',$_SERVER['REQUEST_URI']);
-$recipeSlug = $db->escape($uriParts[array_key_last($uriParts)]);
-$username = $db->escape($uriParts[array_key_last($uriParts)-1]);
+$recipeSlug = $uriParts[array_key_last($uriParts)];
+$username = $uriParts[array_key_last($uriParts)-1];
 
-$query = $db->query("SELECT `uuid`, `title`, `description`, `tips`, `ingredients`, `steps`, `prep`, `cook`, `servings`, `vegetarian`, `vegan`, `dairy_free`, `gluten_free`, `difficulty`, `date` FROM recipes WHERE slug = '".$recipeSlug."' AND `uuid` = '".new Users()->usernameToUuid($username)."' AND `visibility` = 3");
+$query = $db->run("SELECT `uuid`, `title`, `description`, `tips`, `ingredients`, `steps`, `prep`, `cook`, `servings`, `vegetarian`, `vegan`, `dairy_free`, `gluten_free`, `difficulty`, `date` FROM recipes WHERE slug = ? AND `uuid` = ? AND `visibility` = 3",[$recipeSlug,new Users()->usernameToUuid($username)]);
+$numRows = $query->rowCount();
 
-if ($query->num_rows > 0) {
-    $results = $query->fetch_object();
+if ($numRows > 0) {
+    $results = json_decode($query->fetch());
 
     $results->author = [
         "name" => new Users()->uuidToName($results->uuid),
@@ -39,7 +40,7 @@ if ($query->num_rows > 0) {
     echo json_encode([
         "status" => ["code" => "200 OK", "message" => null],
         "data" => $results,
-        "count" => $query->num_rows,
+        "count" => $numRows,
     ]);
 } else {
     echo json_encode([

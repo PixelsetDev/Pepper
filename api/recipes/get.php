@@ -1,10 +1,10 @@
 <?php
 
 use Pepper\Helpers\Users;
-use Starlight\Database\SQL;
+use Starlight\Database\MySQL;
 use Starlight\HTTP\Response;
 
-$db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $userHelper = new Users();
 
 // BASE QUERY
