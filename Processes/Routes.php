@@ -1,9 +1,8 @@
 <?php
 
-namespace Pepper\Helpers;
+namespace Pepper\Processes;
 
 use Starlight\Database\MySQL;
-use Starlight\Database\SQL;
 use Starlight\HTTP\Router;
 
 /**
@@ -21,11 +20,6 @@ class Routes {
     private array $users;
 
     /**
-     * @var array List of collections
-     */
-    private array $collections;
-
-    /**
      * @var MySQL Database.
      */
     private MySQL $db;
@@ -40,16 +34,11 @@ class Routes {
 
         $this->db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
-        $uq = $this->db->fetchAll('SELECT `username` FROM `users`');
+        $uq = $this->db->fetchAll('SELECT `username` FROM `user`');
         if ($this->db->numRows() != 0) { $this->users = $uq; }
-
-        $cq = $this->db->fetchAll('SELECT `slug` FROM `collections` WHERE `visible` = 1');
-        if ($this->db->numRows() != 0) { $this->collections = $cq; }
 
         $this->users();
         $this->recipes();
-        $this->collections();
-        $this->mealplans();
     }
 
     /**
@@ -74,7 +63,7 @@ class Routes {
         $this->router->GET('/recipes', '/api/recipes/get.php');
 
         foreach ($this->users as $user) {
-            $recipes = $this->db->fetchAll("SELECT `slug` FROM `recipes` WHERE `uuid` = '".new Users()->usernameToUuid($user['username'])."'");
+            $recipes = $this->db->fetchAll("SELECT `slug` FROM `recipe` WHERE `uuid` = '".new Users()->usernameToUuid($user['username'])."'");
             if ($this->db->numRows() != 0) {
                 foreach ($recipes as $recipe) {
                     $this->router->GET('/recipe/' . $user['username'] . '/' . $recipe['slug'], '/api/recipes/[user]/[slug]/get.php');

@@ -1,23 +1,23 @@
 <?php
 
-namespace Pepper\Helpers;
+namespace Pepper\Processes;
 
-use Starlight\Database\SQL;
+use Starlight\Database\MySQL;
 
 /**
  * Performs basic user functions.
  */
 class Users {
     /**
-     * @var SQL The database
+     * @var MySQL The database
      */
-    private SQL $db;
+    private MySQL $db;
 
     /**
      * Constructs the class (gets everything ready!)
      */
     public function __construct(){
-        $this->db = new SQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        $this->db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     }
 
     /**
@@ -27,10 +27,10 @@ class Users {
      */
     public function usernameToUuid(string $username): string|bool
     {
-        $query = $this->db->query("SELECT `uuid` FROM `users` WHERE `username` = '".$this->db->escape($username)."'");
+        $user = $this->db->fetchOne("SELECT `uuid` FROM `users` WHERE `username` = ?",[$username]);
 
-        if ($query && $query->num_rows > 0) {
-            return $query->fetch_object()->uuid;
+        if ($this->db->numRows() > 0) {
+            return $user['uuid'];
         } else {
             return false;
         }
@@ -43,10 +43,10 @@ class Users {
      */
     public function uuidToUsername(string $uuid): string|bool
     {
-        $query = $this->db->query("SELECT `username` FROM `users` WHERE `uuid` = '".$this->db->escape($uuid)."'");
+        $user = $this->db->fetchOne("SELECT `username` FROM `users` WHERE `uuid` = ?",[$uuid]);
 
-        if ($query && $query->num_rows > 0) {
-            return $query->fetch_object()->username;
+        if ($this->db->numRows() > 0) {
+            return $user['username'];
         } else {
             return false;
         }
@@ -59,10 +59,10 @@ class Users {
      */
     public function uuidToName(string $uuid): string|bool
     {
-        $query = $this->db->query("SELECT `name` FROM `users` WHERE `uuid` = '".$this->db->escape($uuid)."'");
+        $user = $this->db->fetchOne("SELECT `name` FROM `users` WHERE `uuid` = ?",[$uuid]);
 
-        if ($query && $query->num_rows > 0) {
-            return $query->fetch_object()->name;
+        if ($this->db->numRows() > 0) {
+            return $user['name'];
         } else {
             return false;
         }
