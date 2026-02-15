@@ -27,7 +27,7 @@ class Users {
      */
     public function usernameToUuid(string $username): string|bool
     {
-        $user = $this->db->fetchOne("SELECT `uuid` FROM `users` WHERE `username` = ?",[$username]);
+        $user = $this->db->fetchOne("SELECT `uuid` FROM users WHERE `username` = ?",[$username]);
 
         if ($this->db->numRows() > 0) {
             return $user['uuid'];
@@ -43,7 +43,7 @@ class Users {
      */
     public function uuidToUsername(string $uuid): string|bool
     {
-        $user = $this->db->fetchOne("SELECT `username` FROM `users` WHERE `uuid` = ?",[$uuid]);
+        $user = $this->db->fetchOne("SELECT `username` FROM users WHERE `uuid` = ?",[$uuid]);
 
         if ($this->db->numRows() > 0) {
             return $user['username'];
@@ -59,7 +59,7 @@ class Users {
      */
     public function uuidToName(string $uuid): string|bool
     {
-        $user = $this->db->fetchOne("SELECT `name` FROM `users` WHERE `uuid` = ?",[$uuid]);
+        $user = $this->db->fetchOne("SELECT `name` FROM users WHERE `uuid` = ?",[$uuid]);
 
         if ($this->db->numRows() > 0) {
             return $user['name'];

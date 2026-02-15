@@ -4,6 +4,7 @@ namespace Pepper\Processes;
 
 use Starlight\Database\MySQL;
 use Starlight\HTTP\Router;
+use starlight\HTTP\Types\ResponseCode;
 
 /**
  * Handles the routing for the API
@@ -13,11 +14,6 @@ class Routes {
      * @var Router Starlight router.
      */
     private Router $router;
-
-    /**
-     * @var array List of users
-     */
-    private array $users;
 
     /**
      * @var MySQL Database.
@@ -34,42 +30,87 @@ class Routes {
 
         $this->db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
-        $uq = $this->db->fetchAll('SELECT `username` FROM `user`');
-        if ($this->db->numRows() != 0) { $this->users = $uq; }
-
-        $this->users();
-        $this->recipes();
-    }
-
-    /**
-     * /users routes
-     * @return void
-     */
-    private function users(): void
-    {
-        $this->router->GET('/user','/api/user/get.php');
-
-        foreach ($this->users as $user) {
-            $this->router->GET('/user/'.$user['username'], '/api/user/[id]/get.php');
+        if (!str_contains($_SERVER['REQUEST_URI'], '/v1')) {
+            new PepperResponse()->api(ResponseCode::NotImplemented());
+            exit;
         }
+
+        if (str_contains($_SERVER['REQUEST_URI'], '/v1/users')) { $this->user(); }
+        if (str_contains($_SERVER['REQUEST_URI'], '/v1/recipes')) { $this->recipe(); }
+        if (str_contains($_SERVER['REQUEST_URI'], '/v1/ingredients')) { $this->ingredient(); }
+        $this->other();
     }
 
     /**
-     * /recipes routes
+     * /user routes
      * @return void
      */
-    private function recipes(): void
+    private function user(): void
     {
-        $this->router->GET('/recipes', '/api/recipes/get.php');
+        $this->router->GET('/v1/users','/api/user/get.php');
 
-        foreach ($this->users as $user) {
-            $recipes = $this->db->fetchAll("SELECT `slug` FROM `recipe` WHERE `uuid` = '".new Users()->usernameToUuid($user['username'])."'");
-            if ($this->db->numRows() != 0) {
-                foreach ($recipes as $recipe) {
-                    $this->router->GET('/recipe/' . $user['username'] . '/' . $recipe['slug'], '/api/recipes/[user]/[slug]/get.php');
-                    $this->router->GET('/recipe/' . $user['username'] . '/' . $recipe['slug'] . '/reviews', '/api/recipes/[user]/[slug]/reviews/get.php');
-                }
+        $uq = $this->db->fetchAll('SELECT `uuid`, `username` FROM `user`');
+        if ($this->db->numRows() != 0) {
+            foreach ($uq as $user) {
+                $this->router->GET('/v1/users/' . $user['uuid'], '/api/user/[id]/get.php');
+                $this->router->GET('/v1/users/' . $user['username'], '/api/user/[id]/get.php');
             }
         }
+    }
+
+    /**
+     * /recipe routes
+     * @return void
+     */
+    private function recipe(): void
+    {
+        $this->router->GET('/v1/recipes', '/api/recipe/get.php');
+
+        $recipes = $this->db->fetchAll("SELECT `id`,`slug`,`author_uuid`FROM recipes WHERE 1");
+        if ($this->db->numRows() != 0) {
+            $uh = new Users();
+            foreach ($recipes as $recipe) {
+                $this->router->GET('/v1/recipes/' . $recipe['id'], '/api/recipe/[id]/get.php');
+                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipe/[id]/steps/get.php');
+                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipe/[id]/reviews/get.php');
+                $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author_uuid']) . '/' . $recipe['slug'], '/api/recipe/[id]/get.php');
+            }
+        }
+    }
+
+    /**
+     * /ingredient routes
+     * @return void
+     */
+    private function ingredient(): void
+    {
+        $this->router->GET('/v1/ingredients','/api/ingredient/get.php');
+        $this->router->POST('/v1/ingredients','/api/ingredient/create.php');
+        $this->router->PUT('/v1/ingredients','/api/ingredient/update.php');
+
+        $this->router->POST('/v1/ingredients/dietary','/api/ingredient/dietary/create.php');
+        $this->router->PUT('/v1/ingredients/dietary','/api/ingredient/dietary/update.php');
+
+        $this->router->GET('/v1/ingredients/categories','/api/ingredient/categories/get.php');
+
+        $this->router->GET('/v1/ingredients/categories/0','/api/ingredient/categories/[id]/get.php');
+        $categories = $this->db->fetchAll('SELECT `id` FROM ingredients_categories');
+        foreach ($categories as $category) {
+            $this->router->GET('/v1/ingredients/categories/'.$category['id'],'/api/ingredient/categories/[id]/get.php');
+        }
+
+        $ingredients = $this->db->fetchAll('SELECT `id` FROM ingredients');
+        foreach ($ingredients as $ingredient) {
+            $this->router->GET('/v1/ingredients/'.$ingredient['id'],'/api/ingredient/[id]/get.php');
+        }
+    }
+
+    /**
+     * Other routes
+     * @return void
+     */
+    private function other(): void
+    {
+        $this->router->GET('/v1/statistics','/api/statistics/get.php');
     }
 }
