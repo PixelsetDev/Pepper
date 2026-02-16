@@ -49,7 +49,7 @@ class Routes {
     {
         $this->router->GET('/v1/users','/api/user/get.php');
 
-        $uq = $this->db->fetchAll('SELECT `uuid`, `username` FROM `user`');
+        $uq = $this->db->fetchAll('SELECT `uuid`, `username` FROM users');
         if ($this->db->numRows() != 0) {
             foreach ($uq as $user) {
                 $this->router->GET('/v1/users/' . $user['uuid'], '/api/user/[id]/get.php');
@@ -66,13 +66,14 @@ class Routes {
     {
         $this->router->GET('/v1/recipes', '/api/recipe/get.php');
 
-        $recipes = $this->db->fetchAll("SELECT `id`,`slug`,`author_uuid`FROM recipes WHERE 1");
+        $recipes = $this->db->fetchAll("SELECT `id`,`slug`,`author_uuid` FROM recipes WHERE 1");
         if ($this->db->numRows() != 0) {
             $uh = new Users();
             foreach ($recipes as $recipe) {
                 $this->router->GET('/v1/recipes/' . $recipe['id'], '/api/recipe/[id]/get.php');
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipe/[id]/steps/get.php');
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipe/[id]/reviews/get.php');
+                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipe/[id]/ingredients/get.php');
                 $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author_uuid']) . '/' . $recipe['slug'], '/api/recipe/[id]/get.php');
             }
         }

@@ -39,11 +39,11 @@ if ($search['alias_of'] !== null) {
 }
 if ($dietary != null) {
     $search['dietary'] = $dietary;
-    $search['disclaimer'] = 'Always check the packaging of ingredients for allergens. Some ingredients may be made in the same factory as other products containing allergens, or may contain traces of allergens.';
+    $search['disclaimer'] = "Always check the packaging of ingredients for allergen information. Some ingredients may be produced in facilities that handle allergens and could contain traces. We cannot guarantee the accuracy or completeness of this information.";
     unset($search['dietary']['id'],$search['dietary']['ingredient_id']);
 } else {
     $search['dietary'] = null;
-    $search['disclaimer'] = "This product has no dietary or allergen information. Always check the packaging of ingredients for allergens.";
+    $search['disclaimer'] = "Allergen information is unavailable for one or more ingredients in this recipe. The allergen summary provided may be incomplete. Always check the packaging of ingredients for allergen information.";
 }
 unset($search['id']);
 
