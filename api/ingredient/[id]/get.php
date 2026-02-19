@@ -39,7 +39,7 @@ if ($search['alias_of'] !== null) {
 }
 if ($dietary != null) {
     $search['dietary'] = $dietary;
-    $search['disclaimer'] = "Always check the packaging of ingredients for allergen information. Some ingredients may be produced in facilities that handle allergens and could contain traces. We cannot guarantee the accuracy or completeness of this information.";
+    $search['disclaimer'] = "Always check the packaging of ingredients for allergen information. Some ingredients may be produced in facilities that handle allergens and could contain traces.";
     unset($search['dietary']['id'],$search['dietary']['ingredient_id']);
 } else {
     $search['dietary'] = null;
