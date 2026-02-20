@@ -11,7 +11,6 @@ if (!$decoded) {
     echo new PepperResponse()->api(ResponseCode::InternalServerError(), null, 'Unable to decode');
 } else {
     echo new PepperResponse()->api(ResponseCode::Ok(), json_encode([
-        'auth' => $decoded,
         'user' => $auth->getProfileFromIdToken()
     ]));
 }
