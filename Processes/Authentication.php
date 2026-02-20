@@ -44,6 +44,11 @@ class Authentication
     private int $cacheTtl;
 
     /**
+     * @var string|null Stores the raw bearer token for UserInfo requests.
+     */
+    private ?string $rawToken = null;
+
+    /**
      * Authentication constructor.
      *
      * @param string $issuer The expected JWT issuer.
@@ -87,6 +92,7 @@ class Authentication
             $this->unauthorized('Missing bearer token');
         }
 
+        $this->rawToken = $token;
         $decoded = $this->validateToken($token);
 
         $this->validateClaims($decoded);
@@ -96,6 +102,45 @@ class Authentication
         }
 
         return $decoded;
+    }
+
+    /**
+     * Fetches user profile info by discovering the UserInfo endpoint from the issuer.
+     *
+     * @return array|null
+     */
+    public function getUserInfo(): ?array
+    {
+        if (!$this->rawToken) return ["error" => "No token stored in Authentication class"];
+
+        // We use the direct endpoint to eliminate discovery as a variable
+        $url = "https://auth.portalsso.com/oidc/me";
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // This captures the header so we can see if Logto is sending a WWW-Authenticate error
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $this->rawToken,
+            'Accept: application/json'
+        ]);
+
+        $response = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $body = substr($response, $headerSize);
+        curl_close($ch);
+
+        if ($status !== 200) {
+            // This will PROVE if it's a scope issue (401/403) or a connection issue
+            return [
+                "debug_status" => $status,
+                "debug_body" => json_decode($body, true) ?? $body,
+                "endpoint_attempted" => $url
+            ];
+        }
+
+        return json_decode($body, true);
     }
 
     /**
@@ -219,5 +264,31 @@ class Authentication
         exit;
     }
 
+    /**
+     * Validates the ID Token sent in the X-ID-Token header to securely retrieve profile data.
+     * * @return array|null The validated user profile from the ID Token claims.
+     */
+    public function getProfileFromIdToken(): ?array
+    {
+        $idToken = $_SERVER['HTTP_X_PIXELSET_IDENTITY'] ?? $_SERVER['REDIRECT_HTTP_X_PIXELSET_IDENTITY'] ?? null;
 
+        if (!$idToken) {
+            return null;
+        }
+
+        try {
+            $jwks = $this->getCachedJwks();
+            $keys = JWK::parseKeySet($jwks);
+            $decoded = JWT::decode($idToken, $keys);
+
+            // Standard OIDC ID Token validation
+            if (($decoded->iss ?? '') !== $this->issuer || $decoded->exp < time()) {
+                return null;
+            }
+
+            return (array) $decoded;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
 }
