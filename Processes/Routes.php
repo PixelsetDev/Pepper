@@ -64,18 +64,26 @@ class Routes {
      */
     private function recipe(): void
     {
-        $this->router->GET('/v1/recipes', '/api/recipe/get.php');
+        $this->router->GET('/v1/recipes', '/api/recipes/get.php');
 
         $recipes = $this->db->fetchAll("SELECT `id`,`slug`,`author_uuid` FROM recipes WHERE 1");
         if ($this->db->numRows() != 0) {
             $uh = new Users();
             foreach ($recipes as $recipe) {
-                $this->router->GET('/v1/recipes/' . $recipe['id'], '/api/recipe/[id]/get.php');
-                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipe/[id]/steps/get.php');
-                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipe/[id]/reviews/get.php');
-                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipe/[id]/ingredients/get.php');
-                $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author_uuid']) . '/' . $recipe['slug'], '/api/recipe/[id]/get.php');
+                $this->router->GET('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/get.php');
+                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipes/[id]/steps/get.php');
+                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/get.php');
+                $this->router->GET('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipes/[id]/ingredients/get.php');
+                $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author_uuid']) . '/' . $recipe['slug'], '/api/recipes/[id]/get.php');
             }
+        }
+
+        $this->router->GET('/v1/recipes/categories','/api/recipes/categories/get.php');
+
+        $this->router->GET('/v1/recipes/categories/0','/api/recipes/categories/[id]/get.php');
+        $categories = $this->db->fetchAll('SELECT `id` FROM recipes_categories');
+        foreach ($categories as $category) {
+            $this->router->GET('/v1/recipes/categories/'.$category['id'],'/api/recipes/categories/[id]/get.php');
         }
     }
 
@@ -86,11 +94,8 @@ class Routes {
     private function ingredient(): void
     {
         $this->router->GET('/v1/ingredients','/api/ingredient/get.php');
-        $this->router->POST('/v1/ingredients','/api/ingredient/create.php');
-        $this->router->PUT('/v1/ingredients','/api/ingredient/update.php');
 
-        $this->router->POST('/v1/ingredients/dietary','/api/ingredient/dietary/create.php');
-        $this->router->PUT('/v1/ingredients/dietary','/api/ingredient/dietary/update.php');
+        $this->router->GET('/v1/ingredients/dietary','/api/ingredient/dietary/get.php');
 
         $this->router->GET('/v1/ingredients/categories','/api/ingredient/categories/get.php');
 
