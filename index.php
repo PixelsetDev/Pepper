@@ -12,6 +12,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+use Pepper\Process\Authentication;
 use Pepper\Processes\PepperResponse;
 use Pepper\Processes\Routes;
 use Starlight\HTTP\Headers;
@@ -33,6 +34,7 @@ require_once __DIR__ . '/starlight/Database/MySQL.php';
 require_once __DIR__ . '/starlight/Security/XSS.php';
 
 require_once __DIR__ . '/Processes/PepperResponse.php';
+require_once __DIR__ . '/Processes/Authentication.php';
 require_once __DIR__ . '/Processes/Routes.php';
 require_once __DIR__ . '/Processes/Users.php';
 
@@ -42,7 +44,7 @@ require_once __DIR__ . '/settings.php';
 new Headers()->StrictTransportSecurity(63072000, true, false);
 new Headers()->Server(SERVER_NAME);
 new Headers()->Via("Pepper");
-new Headers()->CORS(CORS_ALLOWED_ORIGINS);
+new Headers()->CORS(CORS_ALLOWED_ORIGINS, true);
 new Headers()->ContentSecurityPolicy();
 
 new Response()->type(ContentType::JSON());

@@ -10,3 +10,8 @@ const DB_PASS = '';
 const SERVER_NAME = '';
 const CORS_ALLOWED_ORIGINS = '*';
 const VERBOSE_ERRORS = false;
+
+// Authentication Settings
+const AUTH_ISSUER = '';
+const AUTH_AUDIENCE = '';
+const AUTH_JWKS = '';

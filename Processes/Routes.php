@@ -31,8 +31,7 @@ class Routes {
         $this->db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
         if (!str_contains($_SERVER['REQUEST_URI'], '/v1')) {
-            new PepperResponse()->api(ResponseCode::NotImplemented());
-            exit;
+            return;
         }
 
         if (str_contains($_SERVER['REQUEST_URI'], '/v1/users')) { $this->user(); }
@@ -48,6 +47,7 @@ class Routes {
     private function user(): void
     {
         $this->router->GET('/v1/users','/api/user/get.php');
+        $this->router->GET('/v1/users/[me]','/api/user/me/get.php');
 
         $uq = $this->db->fetchAll('SELECT `uuid`, `username` FROM users');
         if ($this->db->numRows() != 0) {
