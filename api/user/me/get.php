@@ -10,7 +10,11 @@ $decoded = $auth->authenticate();
 if (!$decoded) {
     echo new PepperResponse()->api(ResponseCode::InternalServerError(), null, 'Unable to decode');
 } else {
+    $user = $auth->getProfileFromIdToken();
     echo new PepperResponse()->api(ResponseCode::Ok(), json_encode([
-        'user' => $auth->getProfileFromIdToken()
+        "username" => $user['username'],
+        "name" => $user['name'],
+        "email" => $user['email'],
+        "uuid" => $user['sub'],
     ]));
 }

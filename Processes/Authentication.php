@@ -153,14 +153,16 @@ class Authentication
         $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
 
         if (empty($authHeader)) {
-            return null;
+            echo new PepperResponse()->api(ResponseCode::Forbidden(),null,'Missing Authorization Header');
+            exit;
         }
 
         if (preg_match('/Bearer\s(\S+)/i', $authHeader, $matches)) {
             return $matches[1];
         }
 
-        return null;
+        echo new PepperResponse()->api(ResponseCode::Forbidden(),null,'Missing Authorization Header');
+        exit;
     }
 
     /**
@@ -273,7 +275,8 @@ class Authentication
         $idToken = $_SERVER['HTTP_X_PIXELSET_IDENTITY'] ?? $_SERVER['REDIRECT_HTTP_X_PIXELSET_IDENTITY'] ?? null;
 
         if (!$idToken) {
-            return null;
+            echo new PepperResponse()->api(ResponseCode::Forbidden(),null,'Missing X-PIXELSET-IDENTITY');
+            exit;
         }
 
         try {
@@ -283,12 +286,12 @@ class Authentication
 
             // Standard OIDC ID Token validation
             if (($decoded->iss ?? '') !== $this->issuer || $decoded->exp < time()) {
-                return null;
+                echo new PepperResponse()->api(ResponseCode::Forbidden());
             }
 
             return (array) $decoded;
         } catch (Exception $e) {
-            return null;
+            echo new PepperResponse()->api(ResponseCode::Forbidden(),null,'Exception processing X-PIXELSET-IDENTITY');
         }
     }
 }
