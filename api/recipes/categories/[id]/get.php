@@ -8,21 +8,22 @@ $db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 $parts = explode('/', $_SERVER['REQUEST_URI']);
 $id = $parts[array_key_last($parts)];
+
 if ($id != 0) {
     $results = $db->fetchOne("SELECT `name`, `parent` FROM recipes_categories WHERE `id` = ?", [$id]);
     $catCount = $db->numRows();
 
-    $recipes = $db->fetchAll('SELECT `id` FROM recipes WHERE `category` = ?', [$id]);
-    $results['recipes'] = [];
-
     $results['subcategories'] = $db->fetchAll('SELECT `id`, `name` FROM recipes_categories WHERE `parent` = ?', [$id]);
+
+    $recipes = $db->fetchAll('SELECT `id` FROM recipes WHERE `category` = ? OR `category` IN (SELECT `id` FROM recipes_categories WHERE `parent` = ?)', [$id, $id]);
+
+    $results['recipes'] = [];
 } else {
     $results = ["name" => "Uncategorised", "parent" => NULL];
     $catCount = 1;
 
     $recipes = $db->fetchAll('SELECT `id` FROM recipes WHERE `category` IS NULL');
     $results['recipes'] = [];
-
     $results['subcategories'] = [];
 }
 
