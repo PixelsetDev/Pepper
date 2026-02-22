@@ -13,49 +13,60 @@ $user = $_GET['user'] ?? null;
 $dietaryRaw = $_GET['dietary'] ?? '[]';
 $dietaryExclusions = json_decode($dietaryRaw, true) ?: [];
 
+$allowedAllergens = ['celery', 'gluten', 'crustaceans', 'eggs', 'fish', 'lupin', 'milk', 'molluscs', 'mustard', 'peanuts', 'sesame', 'soybeans', 'sulphites', 'treenuts', 'animal_products', 'meat'];
+
+$dietaryClause = "";
+if (!empty($dietaryExclusions)) {
+    $dietaryConditions = [];
+    foreach ($dietaryExclusions as $exclusion) {
+        if (in_array($exclusion, $allowedAllergens)) {
+            $dietaryConditions[] = "idat.`" . $exclusion . "` > 0";
+        }
+    }
+    if (!empty($dietaryConditions)) {
+        $allergenCheck = implode(' OR ', $dietaryConditions);
+        // Supports aliases: checks the ingredient or its parent alias against the dietary table
+        $dietaryClause = " AND recipes.id NOT IN (
+            SELECT ri.recipe_id 
+            FROM recipes_ingredients ri 
+            INNER JOIN ingredients i ON ri.ingredient = i.id
+            LEFT JOIN ingredients_dietary idat ON COALESCE(i.alias_of, i.id) = idat.ingredient_id 
+            WHERE ($allergenCheck OR idat.ingredient_id IS NULL)
+        ) AND recipes.id IN (SELECT recipe_id FROM recipes_ingredients)";
+    }
+}
+
+$pq = null;
 if ($category) {
     $pq = $db->fetchAll("SELECT `id` FROM recipes_categories WHERE parent = ? LIMIT 25", [$category]);
 }
 
-// Check for the specific hard-coded allergen string
-if (in_array('milk', $dietaryExclusions)) {
-    if ($category) {
-        if (isset($pq[0])) { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE (category = ? OR category = ?) AND NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`milk` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25", [$pq[0]['id'], $category]); }
-        else { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE category = ? AND NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`milk` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25", [$category]); }
-    } else if ($search) {
-        $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE name LIKE ? AND NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`milk` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25", ['%' . $search . '%']);
-    } else {
-        $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`milk` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25");
+if ($category) {
+    $catId2 = isset($pq[0]) ? $pq[0]['id'] : $category;
+    $sql = "SELECT `id`,`slug`,`name`,`author` FROM recipes WHERE (category = ? OR category = ?) $dietaryClause";
+    $params = [$catId2, $category];
+    if (strlen($search) >= 1) {
+        $sql .= " AND name LIKE ?";
+        $params[] = '%' . $search . '%';
     }
-} else if (in_array('gluten', $dietaryExclusions)) {
-    if ($category) {
-        if (isset($pq[0])) { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE (category = ? OR category = ?) AND NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`gluten` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25", [$pq[0]['id'], $category]); }
-        else { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE category = ? AND NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`gluten` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25", [$category]); }
-    } else if ($search) {
-        $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE name LIKE ? AND NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`gluten` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25", ['%' . $search . '%']);
-    } else {
-        $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE NOT EXISTS (SELECT 1 FROM recipes_ingredients ri LEFT JOIN ingredients_dietary idat ON ri.ingredient = idat.ingredient_id WHERE ri.recipe_id = recipes.id AND (idat.`gluten` > 0 OR idat.id IS NULL)) AND EXISTS (SELECT 1 FROM recipes_ingredients WHERE recipe_id = recipes.id) LIMIT 25");
-    }
-} else if (strlen($search) >= 1 && $category) {
-    if (isset($pq[0])) { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE name LIKE ? AND (category = ? OR category = ?) LIMIT 25", ['%' . $search . '%', $pq[0]['id'], $category]); }
-    else { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE name LIKE ? AND category = ? LIMIT 25", ['%' . $search . '%', $category]); }
-} else if ($category) {
-    if (isset($pq[0])) { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE (category = ? OR category = ?) LIMIT 25", [$pq[0]['id'], $category]); }
-    else { $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE category = ? LIMIT 25", [$category]); }
+    $rq = $db->fetchAll($sql . " LIMIT 25", $params);
 } else if ($user && strlen($search) < 1) {
-    $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE author_uuid = ? LIMIT 25", [$user]);
+    $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author` FROM recipes WHERE author = ? $dietaryClause LIMIT 25", [$user]);
 } else if (strlen($search) >= 1) {
-    $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes WHERE name LIKE ? LIMIT 25", ['%' . $search . '%']);
+    $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author` FROM recipes WHERE name LIKE ? $dietaryClause LIMIT 25", ['%' . $search . '%']);
 } else {
-    $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author_uuid` FROM recipes LIMIT 25");
+    $rq = $db->fetchAll("SELECT `id`,`slug`,`name`,`author` FROM recipes WHERE 1=1 $dietaryClause LIMIT 25");
 }
 
 if ($db->numRows() > 0) {
     $userHelper = new Users();
     $recipes = [];
     foreach ($rq as $recipe) {
-        $recipe['author'] = ['username' => $userHelper->uuidToUsername($recipe['author_uuid']), 'name' => $userHelper->uuidToName($recipe['author_uuid']), 'uuid' => $recipe['author_uuid']];
-        unset($recipe['author_uuid']);
+        $recipe['author'] = [
+            'username' => $userHelper->uuidToUsername($recipe['author']),
+            'name' => $userHelper->uuidToName($recipe['author']),
+            'uuid' => $recipe['author']
+        ];
         unset($recipe['id']);
         $recipes[] = $recipe;
     }

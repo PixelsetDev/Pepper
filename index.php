@@ -56,7 +56,7 @@ new Response()->type(ContentType::JSON());
 
 try {
     new Routes()->register();
-    echo new PepperResponse()->api(ResponseCode::NotFound(), null, "API route or resource not found.");
+    echo new PepperResponse()->api(ResponseCode::NotFound(), null, "Error 404: The requested resource could not found.");
 } catch (Exception $e) {
     if (VERBOSE_ERRORS) {
         echo new PepperResponse()->api(ResponseCode::InternalServerError(), null, $e->getMessage());

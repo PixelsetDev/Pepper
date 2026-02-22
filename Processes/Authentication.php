@@ -84,12 +84,16 @@ class Authentication
      * @param array $requiredScopes Optional array of required scopes to validate.
      * @return object The decoded JWT payload if valid.
      */
-    public function authenticate(array $requiredScopes = []): object
+    public function authenticate(bool $required = true, array $requiredScopes = []): object|bool
     {
         $token = $this->getBearerToken();
 
         if (!$token) {
-            $this->unauthorized('Missing bearer token');
+            if ($required) {
+                $this->unauthorized('Missing bearer token');
+            } else {
+                return false;
+            }
         }
 
         $this->rawToken = $token;
@@ -146,23 +150,21 @@ class Authentication
     /**
      * Retrieves the Bearer token from the Authorization header.
      *
-     * @return string|null The JWT token, or null if missing.
+     * @return string|bool The JWT token, or false if missing.
      */
-    private function getBearerToken(): ?string
+    private function getBearerToken(): string|bool
     {
         $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
 
         if (empty($authHeader)) {
-            echo new PepperResponse()->api(ResponseCode::Forbidden(),null,'Missing Authorization Header');
-            exit;
+            return false;
         }
 
         if (preg_match('/Bearer\s(\S+)/i', $authHeader, $matches)) {
             return $matches[1];
         }
 
-        echo new PepperResponse()->api(ResponseCode::Forbidden(),null,'Missing Authorization Header');
-        exit;
+        return false;
     }
 
     /**
@@ -292,6 +294,7 @@ class Authentication
             return (array) $decoded;
         } catch (Exception $e) {
             echo new PepperResponse()->api(ResponseCode::Forbidden(),null,'Exception processing X-PIXELSET-IDENTITY');
+            exit;
         }
     }
 }

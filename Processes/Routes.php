@@ -37,6 +37,7 @@ class Routes {
         if (str_contains($_SERVER['REQUEST_URI'], '/v1/users')) { $this->user(); }
         if (str_contains($_SERVER['REQUEST_URI'], '/v1/recipes')) { $this->recipe(); }
         if (str_contains($_SERVER['REQUEST_URI'], '/v1/ingredients')) { $this->ingredient(); }
+        if (str_contains($_SERVER['REQUEST_URI'], '/v1/collections')) { $this->collections(); }
         $this->other();
     }
 
@@ -66,7 +67,7 @@ class Routes {
     {
         $this->router->GET('/v1/recipes', '/api/recipes/get.php');
 
-        $recipes = $this->db->fetchAll("SELECT `id`,`slug`,`author_uuid` FROM recipes WHERE 1");
+        $recipes = $this->db->fetchAll("SELECT `id`,`slug`,`author` FROM recipes WHERE 1");
         if ($this->db->numRows() != 0) {
             $uh = new Users();
             foreach ($recipes as $recipe) {
@@ -74,7 +75,7 @@ class Routes {
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipes/[id]/steps/get.php');
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/get.php');
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipes/[id]/ingredients/get.php');
-                $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author_uuid']) . '/' . $recipe['slug'], '/api/recipes/[id]/get.php');
+                $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author']) . '/' . $recipe['slug'], '/api/recipes/[id]/get.php');
             }
         }
 
@@ -108,6 +109,23 @@ class Routes {
         $ingredients = $this->db->fetchAll('SELECT `id` FROM ingredients');
         foreach ($ingredients as $ingredient) {
             $this->router->GET('/v1/ingredients/'.$ingredient['id'],'/api/ingredient/[id]/get.php');
+        }
+    }
+
+    /**
+     * /collections routes
+     * @return void
+     */
+    private function collections(): void
+    {
+        $this->router->GET('/v1/collections','/api/collections/get.php');
+
+        $collections = $this->db->fetchAll('SELECT `id`,`author`,`slug` FROM collections');
+        if ($this->db->numRows() != 0) {
+            foreach ($collections as $collection) {
+                $this->router->GET('/v1/collections/' . $collection['id'], '/api/collections/[id]/get.php');
+                $this->router->GET('/v1/collections/' . $collection['slug'], '/api/collections/[id]/get.php');
+            }
         }
     }
 
