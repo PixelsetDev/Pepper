@@ -67,4 +67,25 @@ class Users {
             return false;
         }
     }
+
+    /**
+     * Gets a list of the user's friends.
+     * @param $uuid string The UUID to search for.
+     * @return array List of friend's UUIDs.
+     */
+    public function getFriends(string $uuid): array
+    {
+        $following = $this->db->fetchAll("SELECT `following` FROM users_following WHERE `user` = ?",[$uuid]);
+        $numFollowing = $this->db->numRows();
+        $followers = $this->db->fetchAll("SELECT `user` FROM users_following WHERE `following` = ?",[$uuid]);
+        $numFollowers = $this->db->numRows();
+
+        if ($numFollowing > 0 && $numFollowers > 0) {
+            $followingIds = array_column($following, 'following');
+            $followerIds = array_column($followers, 'user');
+            return array_intersect($followingIds, $followerIds);
+        } else {
+            return [];
+        }
+    }
 }

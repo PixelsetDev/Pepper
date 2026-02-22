@@ -44,7 +44,7 @@ require_once __DIR__ . '/settings.php';
 new Headers()->StrictTransportSecurity(63072000, true, false);
 new Headers()->Server(SERVER_NAME);
 new Headers()->Via("Pepper");
-new Headers()->CORS(CORS_ALLOWED_ORIGINS, true, ['GET', 'OPTIONS'], ['Content-Type','Authorization','X-PIXELSET-IDENTITY']);
+new Headers()->CORS(CORS_ALLOWED_ORIGINS, true, ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], ['Content-Type','Authorization','X-PIXELSET-IDENTITY']);
 new Headers()->ContentSecurityPolicy();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

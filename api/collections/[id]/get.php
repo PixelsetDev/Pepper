@@ -1,5 +1,6 @@
 <?php
 
+use Pepper\Process\Authentication;
 use Pepper\Processes\PepperResponse;
 use Pepper\Processes\Users;
 use Starlight\Database\MySQL;
@@ -9,29 +10,33 @@ $uriParts = explode('/', $_SERVER['REQUEST_URI']);
 $db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $userHelper = new Users();
 
-if (!is_numeric($uriParts[3])) {
-    $collection = $db->fetchOne("SELECT `id`,`author`,`slug`,`name`,`description`,`featured` FROM collections WHERE `slug` = ? AND `visibility` = 3", [$uriParts[3]]);
-    if ($db->numRows() > 0) {
-        $recipes = $db->fetchAll("SELECT `recipe_id` FROM collections_recipes WHERE `collection_id` = ?", [$collection['id']]);
-    } else {
-        echo new PepperResponse()->api(ResponseCode::Forbidden(), null, 'You do not have permission to view collection.');
-        exit;
-    }
-} else {
-    $collection = $db->fetchOne("SELECT `id`,`author`,`slug`,`name`,`description`,`featured` FROM collections WHERE `id` = ? AND `visibility` = 3", [$uriParts[3]]);
-    if ($db->numRows() > 0) {
-        $recipes = $db->fetchAll("SELECT `recipe_id` FROM collections_recipes WHERE `collection_id` = ?", [$uriParts[3]]);
-    } else {
-        echo new PepperResponse()->api(ResponseCode::Forbidden(), null, 'You do not have permission to view collection.');
-        exit;
-    }
+$auth = new Authentication(AUTH_ISSUER, AUTH_AUDIENCE, AUTH_JWKS);
+$decoded = $auth->authenticate(false);
+
+$identifier = $uriParts[3];
+$column = is_numeric($identifier) ? 'id' : 'slug';
+
+$collection = $db->fetchOne("SELECT `id`,`author`,`slug`,`name`,`description`,`featured`,`visibility` FROM collections WHERE `$column` = ?", [$identifier]);
+
+if (!$collection || !$auth->canViewObject($decoded, $collection['author'], (int)$collection['visibility'], false)) {
+    echo new PepperResponse()->api(ResponseCode::Forbidden(), null, 'You do not have permission to view collection.');
+    exit;
 }
+
+$recipes = $db->fetchAll("SELECT `recipe_id` FROM collections_recipes WHERE `collection_id` = ?", [$collection['id']]);
 
 foreach ($recipes as $key => $recipe) {
-    $recipes[$key] = $db->fetchOne("SELECT `author`,`slug`,`name` FROM recipes WHERE `id` = ?", [$recipe['recipe_id']]);
-    $recipes[$key]['author'] = ['name' => $userHelper->uuidToName($recipes[$key]['author']), 'username' => $userHelper->uuidToUsername($recipes[$key]['author'])];
+    $recipeData = $db->fetchOne("SELECT `author`,`slug`,`name`,`visibility` FROM recipes WHERE `id` = ?", [$recipe['recipe_id']]);
+
+    if (!$recipeData || !$auth->canViewObject($decoded, $recipeData['author'], (int)$recipeData['visibility'], false)) {
+        unset($recipes[$key]);
+        continue;
+    }
+
+    $recipeData['author'] = ['name' => $userHelper->uuidToName($recipeData['author']), 'username' => $userHelper->uuidToUsername($recipeData['author'])];
+    $recipes[$key] = $recipeData;
 }
 
-$collection['author'] = [ "name" => new Users()->uuidToName($collection['author']), "username" => new Users()->uuidToUsername($collection['author'])];
+$collection['author'] = ["name" => $userHelper->uuidToName($collection['author']), "username" => $userHelper->uuidToUsername($collection['author'])];
 
-echo new PepperResponse()->api(ResponseCode::OK(), json_encode(["collection" => $collection, "recipes" => $recipes]));
+echo new PepperResponse()->api(ResponseCode::OK(), json_encode(["collection" => $collection, "recipes" => array_values($recipes)]));

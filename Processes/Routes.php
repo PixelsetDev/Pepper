@@ -47,14 +47,15 @@ class Routes {
      */
     private function user(): void
     {
-        $this->router->GET('/v1/users','/api/user/get.php');
-        $this->router->GET('/v1/users/[me]','/api/user/me/get.php');
+        $this->router->GET('/v1/users','/api/users/get.php');
+        $this->router->GET('/v1/users/[me]','/api/users/me/get.php');
+        $this->router->GET('/v1/users/[me]/reviews','/api/users/me/reviews/get.php');
 
         $uq = $this->db->fetchAll('SELECT `uuid`, `username` FROM users');
         if ($this->db->numRows() != 0) {
             foreach ($uq as $user) {
-                $this->router->GET('/v1/users/' . $user['uuid'], '/api/user/[id]/get.php');
-                $this->router->GET('/v1/users/' . $user['username'], '/api/user/[id]/get.php');
+                $this->router->GET('/v1/users/' . $user['uuid'], '/api/users/[id]/get.php');
+                $this->router->GET('/v1/users/' . $user['username'], '/api/users/[id]/get.php');
             }
         }
     }
@@ -73,7 +74,12 @@ class Routes {
             foreach ($recipes as $recipe) {
                 $this->router->GET('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/get.php');
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipes/[id]/steps/get.php');
+
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/get.php');
+                $this->router->POST('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/create.php');
+                $this->router->PUT('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/update.php');
+                $this->router->DELETE('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/delete.php');
+
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipes/[id]/ingredients/get.php');
                 $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author']) . '/' . $recipe['slug'], '/api/recipes/[id]/get.php');
             }

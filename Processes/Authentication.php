@@ -7,6 +7,7 @@ use Firebase\JWT\JWK;
 use Exception;
 use JetBrains\PhpStorm\NoReturn;
 use Pepper\Processes\PepperResponse;
+use Pepper\Processes\Users;
 use starlight\HTTP\Types\ResponseCode;
 
 /**
@@ -79,10 +80,32 @@ class Authentication
     }
 
     /**
+     * Checks if an authenticated user can view a restricted object.
+     * @param $uuid string The user who wishes to view the object's UUID.
+     * @param $object_owner string The user who owns the object's UUID.
+     * @param $visibility int The visibility level (3 = open, 2 = unlisted, 1 = friends only, 0 = private)
+     * @return bool Can the user view the object?
+     */
+    public function canViewObject(object|bool $uuid, string $object_owner, int $visibility, bool $isListing = false): bool
+    {
+        $visitorId = (is_object($uuid) && isset($uuid->sub)) ? $uuid->sub : false;
+
+        if ($visitorId && $visitorId === $object_owner) return true;
+        if ($visibility === 3) return true;
+        if ($isListing && $visibility === 2) return false;
+        if ($visibility === 2) return true;
+        if ($visitorId && $visibility === 1) return in_array($visitorId, (new Users())->getFriends($object_owner));
+
+        return false;
+    }
+
+    /**
      * Authenticates the current request by validating the bearer token.
      *
+     * @param bool $required
      * @param array $requiredScopes Optional array of required scopes to validate.
-     * @return object The decoded JWT payload if valid.
+     * @return object|bool The decoded JWT payload if valid.
+     * @throws Exception
      */
     public function authenticate(bool $required = true, array $requiredScopes = []): object|bool
     {
