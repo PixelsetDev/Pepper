@@ -73,7 +73,14 @@ class Routes {
             $uh = new Users();
             foreach ($recipes as $recipe) {
                 $this->router->GET('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/get.php');
+                $this->router->POST('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/create.php');
+                $this->router->PUT('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/update.php');
+                $this->router->DELETE('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/delete.php');
+
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipes/[id]/steps/get.php');
+                $this->router->POST('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipes/[id]/steps/create.php');
+                $this->router->PUT('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipes/[id]/steps/update.php');
+                $this->router->DELETE('/v1/recipes/' . $recipe['id'] . '/steps', '/api/recipes/[id]/steps/delete.php');
 
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/get.php');
                 $this->router->POST('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/create.php');
@@ -81,6 +88,10 @@ class Routes {
                 $this->router->DELETE('/v1/recipes/' . $recipe['id'] . '/reviews', '/api/recipes/[id]/reviews/delete.php');
 
                 $this->router->GET('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipes/[id]/ingredients/get.php');
+                $this->router->POST('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipes/[id]/ingredients/create.php');
+                $this->router->PUT('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipes/[id]/ingredients/update.php');
+                $this->router->DELETE('/v1/recipes/' . $recipe['id'] . '/ingredients', '/api/recipes/[id]/ingredients/delete.php');
+
                 $this->router->GET('/v1/recipes/' . $uh->uuidToUsername($recipe['author']) . '/' . $recipe['slug'], '/api/recipes/[id]/get.php');
             }
         }
@@ -125,11 +136,15 @@ class Routes {
     private function collections(): void
     {
         $this->router->GET('/v1/collections','/api/collections/get.php');
+        $this->router->POST('/v1/collections','/api/collections/create.php');
 
         $collections = $this->db->fetchAll('SELECT `id`,`author`,`slug` FROM collections');
         if ($this->db->numRows() != 0) {
             foreach ($collections as $collection) {
                 $this->router->GET('/v1/collections/' . $collection['id'], '/api/collections/[id]/get.php');
+                $this->router->DELETE('/v1/collections/' . $collection['id'], '/api/collections/[id]/delete.php');
+                $this->router->PUT('/v1/collections/' . $collection['id'], '/api/collections/[id]/update.php');
+
                 $this->router->GET('/v1/collections/' . $collection['slug'], '/api/collections/[id]/get.php');
             }
         }

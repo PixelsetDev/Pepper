@@ -20,7 +20,7 @@ if (isset($_GET['lang'])) {
 }
 
 if (isset($_GET['search']) && trim($_GET['search']) != "") {
-    $search = $db->fetchAll("SELECT `id`, `name_gb`, `name_".$language."` FROM ingredients WHERE `name_".$language."` LIKE ? OR `name_gb` LIKE ? LIMIT 25", ['%' . $_GET['search'] . '%', '%' . $_GET['search'] . '%']);
+    $search = $db->fetchAll("SELECT `id`, `name_".$language."` FROM ingredients WHERE `name_".$language."` LIKE ? OR `name_gb` LIKE ? LIMIT 25", ['%' . $_GET['search'] . '%', '%' . $_GET['search'] . '%']);
     $total = $db->numRows();
     foreach ($search as $key => $item) {
         $search[$key]['name'] = $search[$key]['name_' . $language];

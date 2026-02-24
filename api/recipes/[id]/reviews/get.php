@@ -18,7 +18,7 @@ if (!$recipe || !$auth->canViewObject($decoded, $recipe['author'], (int)$recipe[
     exit;
 }
 
-$reviews = $db->fetchAll("SELECT `uuid`,`rating`,`comment` FROM recipes_reviews WHERE `recipe_id` = ?", [$uriParts[3]]);
+$reviews = $db->fetchAll("SELECT `uuid`,`rating`,`comment`,`created`,`edited` FROM recipes_reviews WHERE `recipe_id` = ?", [$uriParts[3]]);
 $uh = new Users();
 $score = 0;
 

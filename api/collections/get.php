@@ -20,8 +20,9 @@ foreach ($collections as $key => $collection) {
     }
 
     $collections[$key]['author'] = [
-        "name" => (new Users())->uuidToName($collection['author']),
-        "username" => (new Users())->uuidToUsername($collection['author'])
+        "uuid" => $collection['author'],
+        "name" => new Users()->uuidToName($collection['author']),
+        "username" => new Users()->uuidToUsername($collection['author'])
     ];
 }
 

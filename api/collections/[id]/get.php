@@ -16,13 +16,15 @@ $decoded = $auth->authenticate(false);
 $identifier = $uriParts[3];
 $column = is_numeric($identifier) ? 'id' : 'slug';
 
-$collection = $db->fetchOne("SELECT `id`,`author`,`slug`,`name`,`description`,`featured`,`visibility` FROM collections WHERE `$column` = ?", [$identifier]);
-
-if (!$collection || !$auth->canViewObject($decoded, $collection['author'], (int)$collection['visibility'], false)) {
+$collection = $db->fetchOne("SELECT `id`,`author`,`slug`,`name`,`description`,`featured`,`visibility` FROM collections WHERE {$column} = ?", [$identifier]);
+if (!$collection) {
+    echo new PepperResponse()->api(ResponseCode::NotFound(), null, 'Collection not found.');
+    exit;
+}
+if (!$auth->canViewObject($decoded, $collection['author'], (int)$collection['visibility'], false)) {
     echo new PepperResponse()->api(ResponseCode::Forbidden(), null, 'You do not have permission to view collection.');
     exit;
 }
-
 $recipes = $db->fetchAll("SELECT `recipe_id` FROM collections_recipes WHERE `collection_id` = ?", [$collection['id']]);
 
 foreach ($recipes as $key => $recipe) {
@@ -37,6 +39,6 @@ foreach ($recipes as $key => $recipe) {
     $recipes[$key] = $recipeData;
 }
 
-$collection['author'] = ["name" => $userHelper->uuidToName($collection['author']), "username" => $userHelper->uuidToUsername($collection['author'])];
+$collection['author'] = ["uuid" => $collection['author'], "name" => $userHelper->uuidToName($collection['author']), "username" => $userHelper->uuidToUsername($collection['author'])];
 
 echo new PepperResponse()->api(ResponseCode::OK(), json_encode(["collection" => $collection, "recipes" => array_values($recipes)]));

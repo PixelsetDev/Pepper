@@ -49,9 +49,8 @@ $recipes = [];
 foreach (($rq ?? []) as $recipe) {
     if (!$auth->canViewObject($decoded, $recipe['author'], (int)$recipe['visibility'], true)) { continue; }
     $recipe['author'] = ['username' => $userHelper->uuidToUsername($recipe['author']), 'name' => $userHelper->uuidToName($recipe['author']), 'uuid' => $recipe['author']];
-    unset($recipe['id']);
     $recipes[] = $recipe;
 }
 
-if (empty($recipes)) { echo (new PepperResponse())->api(ResponseCode::NotFound(), null, 'No recipes found.'); }
-else { echo (new PepperResponse())->api(ResponseCode::OK(), json_encode($recipes)); }
+if (empty($recipes)) { echo new PepperResponse()->api(ResponseCode::NotFound(), null, 'No recipes found.'); }
+else { echo new PepperResponse()->api(ResponseCode::OK(), json_encode($recipes)); }

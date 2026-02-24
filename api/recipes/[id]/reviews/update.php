@@ -15,11 +15,11 @@ if ($data->rating < 1 || $data->rating > 5) {
     exit;
 }
 
-$db->run("UPDATE recipes_reviews SET `rating` = ?, `comment` = ? WHERE `recipe_id` = ? AND `uuid` = ?", [$data->rating, $data->comment, $uriParts[3], $decoded->sub]);
+$db->run("UPDATE recipes_reviews SET `rating` = ?, `comment` = ?, `edited` = ? WHERE `recipe_id` = ? AND `uuid` = ?", [$data->rating, $data->comment, date('Y-m-d H:i:s'), $uriParts[3], $decoded->sub]);
 
 if ($db->numRows() === 0) {
     echo new PepperResponse()->api(ResponseCode::Forbidden(), null, 'Update failed: Review not found or unauthorized.');
     exit;
 }
 
-echo new PepperResponse()->api(ResponseCode::OK(), json_encode(['status' => 'Review updated']));
+echo new PepperResponse()->api(ResponseCode::OK());

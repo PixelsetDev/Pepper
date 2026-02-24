@@ -13,12 +13,18 @@ $auth = new Authentication(AUTH_ISSUER, AUTH_AUDIENCE, AUTH_JWKS);
 $decoded = $auth->authenticate(false);
 
 if (isset($uriParts[4])) {
-    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `date`, `tips` FROM recipes WHERE `author` = ? AND `slug` = ?", [$userHelper->usernameToUuid($uriParts[3]), $uriParts[4]]);
+    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `date`, `tips`, `category` FROM recipes WHERE `author` = ? AND `slug` = ?", [$userHelper->usernameToUuid($uriParts[3]), $uriParts[4]]);
 } else {
-    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `date`, `tips` FROM recipes WHERE `id` = ?", [$uriParts[3]]);
+    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `date`, `tips`, `category` FROM recipes WHERE `id` = ?", [$uriParts[3]]);
 }
 
 if ($recipe && $auth->canViewObject($decoded, $recipe['author'], (int)$recipe['visibility'], false)) {
+    if ($decoded && $decoded->sub === $recipe['author']) {
+        $recipe['isOwned'] = true;
+    } else {
+        $recipe['isOwned'] = false;
+    }
+
     $authorUuid = $recipe['author'];
     $recipe['author'] = ['username' => $userHelper->uuidToUsername($authorUuid), 'name' => $userHelper->uuidToName($authorUuid)];
     $recipe['time'] = ["prep" => $recipe['prep_time'], "cook" => $recipe['cook_time']];

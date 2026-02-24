@@ -94,7 +94,7 @@ class Authentication
         if ($visibility === 3) return true;
         if ($isListing && $visibility === 2) return false;
         if ($visibility === 2) return true;
-        if ($visitorId && $visibility === 1) return in_array($visitorId, (new Users())->getFriends($object_owner));
+        if ($visitorId && $visibility === 1) return in_array($visitorId, new Users()->getFriends($object_owner));
 
         return false;
     }
