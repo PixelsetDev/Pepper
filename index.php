@@ -37,6 +37,7 @@ require_once __DIR__ . '/Processes/PepperResponse.php';
 require_once __DIR__ . '/Processes/Authentication.php';
 require_once __DIR__ . '/Processes/Routes.php';
 require_once __DIR__ . '/Processes/Users.php';
+require_once __DIR__ . '/Processes/Algorithm/TrendingAlgorithm.php';
 
 require_once __DIR__ . '/settings.php';
 
@@ -46,6 +47,7 @@ new Headers()->Server(SERVER_NAME);
 new Headers()->Via("Pepper");
 new Headers()->CORS(CORS_ALLOWED_ORIGINS, true, ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], ['Content-Type','Authorization','X-PIXELSET-IDENTITY']);
 new Headers()->ContentSecurityPolicy();
+new Response()->type(ContentType::JSON());
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);

@@ -19,11 +19,19 @@ foreach ($collections as $key => $collection) {
         continue;
     }
 
-    $collections[$key]['author'] = [
-        "uuid" => $collection['author'],
-        "name" => new Users()->uuidToName($collection['author']),
-        "username" => new Users()->uuidToUsername($collection['author'])
-    ];
+    if ($collections[$key]['author'] !== 'SYSTEM') {
+        $collections[$key]['author'] = [
+            "uuid" => $collection['author'],
+            "name" => new Users()->uuidToName($collection['author']),
+            "username" => new Users()->uuidToUsername($collection['author'])
+        ];
+    } else {
+        $collections[$key]['author'] = [
+            "uuid" => 'SYSTEM',
+            "name" => 'SYSTEM',
+            "username" => 'SYSTEM'
+        ];
+    }
 }
 
 echo new PepperResponse()->api(ResponseCode::OK(), json_encode($collections));

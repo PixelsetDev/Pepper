@@ -67,13 +67,13 @@ class Routes {
     private function recipe(): void
     {
         $this->router->GET('/v1/recipes', '/api/recipes/get.php');
+        $this->router->POST('/v1/recipes', '/api/recipes/create.php');
 
         $recipes = $this->db->fetchAll("SELECT `id`,`slug`,`author` FROM recipes WHERE 1");
         if ($this->db->numRows() != 0) {
             $uh = new Users();
             foreach ($recipes as $recipe) {
                 $this->router->GET('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/get.php');
-                $this->router->POST('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/create.php');
                 $this->router->PUT('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/update.php');
                 $this->router->DELETE('/v1/recipes/' . $recipe['id'], '/api/recipes/[id]/delete.php');
 

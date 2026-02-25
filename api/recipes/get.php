@@ -28,12 +28,9 @@ if (!empty($dietaryExclusions)) {
     }
 }
 
-$pq = $category ? $db->fetchAll("SELECT `id` FROM recipes_categories WHERE parent = ? LIMIT 25", [$category]) : null;
-
 if ($category) {
-    $catId2 = isset($pq[0]) ? $pq[0]['id'] : $category;
-    $sql = "SELECT `id`,`slug`,`name`,`author`,`visibility` FROM recipes WHERE (category = ? OR category = ?) $dietaryClause";
-    $params = [$catId2, $category];
+    $sql = "SELECT `id`,`slug`,`name`,`author`,`visibility` FROM recipes WHERE (category = ? OR category IN (SELECT `id` FROM recipes_categories WHERE parent = ?)) $dietaryClause";
+    $params = [$category, $category];
     if (strlen($search) >= 1) { $sql .= " AND name LIKE ?"; $params[] = '%' . $search . '%'; }
     $rq = $db->fetchAll($sql . " LIMIT 25", $params);
 } else if ($user && strlen($search) < 1) {
