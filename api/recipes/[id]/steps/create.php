@@ -17,5 +17,12 @@ if (!$recipe || $recipe['author'] !== $decoded->sub) {
     exit;
 }
 
-$db->run("INSERT INTO recipes_steps (`recipe_id`, `step`, `text`) VALUES (?, ?, ?)", [$uriParts[3], $data->step, $data->text]);
+if ($data->text === null) {
+    echo new PepperResponse()->api(ResponseCode::BadRequest(), null, 'Step cannot be empty!');
+    exit;
+}
+
+$db->run("INSERT INTO recipes_steps (`recipe_id`, `step`, `text`) VALUES (?, ?, ?)", [$uriParts[3], $data->step, trim($data->text)]);
+$db->run("UPDATE recipes SET `edited` = ? WHERE `id` = ?", [date('Y-m-d H:i:s'), $uriParts[3]]);
+
 echo new PepperResponse()->api(ResponseCode::Created());

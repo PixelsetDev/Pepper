@@ -16,15 +16,25 @@ if (strlen($data->name) > 27) {
     exit;
 }
 
-$slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data->name), '-'));
-$baseSlug = substr($slug, 0, 27);
-$finalSlug = $baseSlug;
-
-while ($db->fetchOne("SELECT id FROM collections WHERE slug = ?", [$finalSlug])) {
-    $finalSlug = substr($baseSlug, 0, 27) . '-' . substr(uniqid(), -4);
+if (strlen($data->name) > 128) {
+    echo new PepperResponse()->api(ResponseCode::BadRequest(), null, 'Description too long (max 128).');
+    exit;
 }
 
-$db->run("INSERT INTO collections (`author`, `name`, `description`, `slug`, `visibility`, `created`) VALUES (?, ?, ?, ?, ?, ?)", [$decoded->sub, $data->name, $optional->description ?? null, $finalSlug, (int)$data->visibility, date('Y-m-d H:i:s')]);
+$baseSlug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data->name), '-'));
+$slug = substr($baseSlug, 0, 27);
+
+$exists = 1;
+while ($exists !== -1) {
+    $db->fetchOne("SELECT id FROM collections WHERE slug = ?", [$slug]);
+    if ($db->numRows() === 0) {
+        $exists = -1;
+    }
+    $exists++;
+    $slug = substr($baseSlug, 0, 27).'-'.$exists;
+}
+
+$db->run("INSERT INTO collections (`author`, `name`, `description`, `slug`, `visibility`, `created`) VALUES (?, ?, ?, ?, ?, ?)", [$decoded->sub, trim($data->name), trim($optional->description) ?? null, $slug, (int)$data->visibility, date('Y-m-d H:i:s')]);
 
 $collectionId = $db->lastInsertId();
 
@@ -38,4 +48,4 @@ if (!empty($optional->recipe_ids) && is_array($optional->recipe_ids)) {
     }
 }
 
-echo new PepperResponse()->api(ResponseCode::Created(), '"' . $finalSlug . '"');
+echo new PepperResponse()->api(ResponseCode::Created(), '"' . $slug . '"');

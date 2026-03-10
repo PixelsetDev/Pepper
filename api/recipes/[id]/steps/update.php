@@ -17,5 +17,12 @@ if (!$recipe || $recipe['author'] !== $decoded->sub) {
     exit;
 }
 
-$db->run("UPDATE recipes_steps SET `text` = ? WHERE `step` = ? AND `recipe_id` = ?", [$data->text, $data->step, $uriParts[3]]);
+if ($data->text === null) {
+    echo new PepperResponse()->api(ResponseCode::BadRequest(), null, 'Step cannot be empty!');
+    exit;
+}
+
+$db->run("UPDATE recipes_steps SET `text` = ? WHERE `step` = ? AND `recipe_id` = ?", [trim($data->text), $data->step, $uriParts[3]]);
+$db->run("UPDATE recipes SET `edited` = ? WHERE `id` = ?", [date('Y-m-d H:i:s'), $uriParts[3]]);
+
 echo new PepperResponse()->api(ResponseCode::OK());

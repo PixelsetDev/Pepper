@@ -15,9 +15,9 @@ $decoded = $auth->authenticate(false);
 $db->run("DELETE FROM recipes_views_dedupe WHERE expires_at < NOW()");
 
 if (isset($uriParts[4])) {
-    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `date`, `tips`, `category` FROM recipes WHERE `author` = ? AND `slug` = ?", [$userHelper->usernameToUuid($uriParts[3]), $uriParts[4]]);
+    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `created`, `edited`, `tips`, `category` FROM recipes WHERE `author` = ? AND `slug` = ?", [$userHelper->usernameToUuid($uriParts[3]), $uriParts[4]]);
 } else {
-    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `date`, `tips`, `category` FROM recipes WHERE `id` = ?", [$uriParts[3]]);
+    $recipe = $db->fetchOne("SELECT `id`, `slug`, `name`, `description`, `author`, `servings`, `prep_time`, `cook_time`, `difficulty`, `visibility`, `created`, `edited`, `tips`, `category` FROM recipes WHERE `id` = ?", [$uriParts[3]]);
 }
 
 if ($recipe && $auth->canViewObject($decoded, $recipe['author'], (int)$recipe['visibility'], false)) {

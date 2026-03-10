@@ -88,4 +88,16 @@ class Users {
             return [];
         }
     }
+
+    /**
+     * Checks if a user has preferences set.
+     * @param $uuid string The UUID to search for.
+     * @return bool true/false.
+     */
+    public function hasPreferences(string $uuid): bool
+    {
+        $this->db->fetchAll("SELECT id FROM users_preferences WHERE uuid = ?",[$uuid]);
+
+        return $this->db->numRows() === 1;
+    }
 }

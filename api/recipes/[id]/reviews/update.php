@@ -10,10 +10,12 @@ $db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $decoded = new Authentication(AUTH_ISSUER, AUTH_AUDIENCE, AUTH_JWKS)->authenticate(true);
 $data = new Request()->jsonValidated(['rating', 'comment']);
 
-if ($data->rating < 1 || $data->rating > 5) {
+if (!is_numeric($data->rating) || $data->rating < 1 || $data->rating > 5) {
     echo new PepperResponse()->api(ResponseCode::BadRequest(), null, 'Rating must be between 1 and 5.');
     exit;
 }
+
+if ($data->comment !== null) { $data->comment = trim($data->comment); }
 
 $db->run("UPDATE recipes_reviews SET `rating` = ?, `comment` = ?, `edited` = ? WHERE `recipe_id` = ? AND `uuid` = ?", [$data->rating, $data->comment, date('Y-m-d H:i:s'), $uriParts[3], $decoded->sub]);
 

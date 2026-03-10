@@ -18,4 +18,6 @@ if (!$recipe || $recipe['author'] !== $decoded->sub) {
 }
 
 $db->run("UPDATE recipes_ingredients SET `amount` = ?, `unit` = ? WHERE `id` = ? AND `recipe_id` = ?", [$data->amount, $data->unit, $data->id, $uriParts[3]]);
+$db->run("UPDATE recipes SET `edited` = ? WHERE `id` = ?", [date('Y-m-d H:i:s'), $uriParts[3]]);
+
 echo new PepperResponse()->api(ResponseCode::OK());

@@ -11,10 +11,12 @@ $auth = new Authentication(AUTH_ISSUER, AUTH_AUDIENCE, AUTH_JWKS);
 $decoded = $auth->authenticate(true);
 $data = new Request()->jsonValidated(['rating', 'comment']);
 
-if ($data->rating < 1 || $data->rating > 5) {
+if (!is_numeric($data->rating) || $data->rating < 1 || $data->rating > 5) {
     echo new PepperResponse()->api(ResponseCode::BadRequest(), null, 'Rating must be between 1 and 5.');
     exit;
 }
+
+if ($data->comment !== null) { $data->comment = trim($data->comment); }
 
 $recipe = $db->fetchOne("SELECT `author`, `visibility` FROM recipes WHERE `id` = ?", [$uriParts[3]]);
 

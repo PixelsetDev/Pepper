@@ -12,7 +12,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-use Pepper\Process\Authentication;
 use Pepper\Processes\PepperResponse;
 use Pepper\Processes\Routes;
 use Starlight\HTTP\Headers;
@@ -49,12 +48,16 @@ new Headers()->CORS(CORS_ALLOWED_ORIGINS, true, ['GET', 'POST', 'PUT', 'DELETE',
 new Headers()->ContentSecurityPolicy();
 new Response()->type(ContentType::JSON());
 
+//TODO: ADD TO STARLIGHT!
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: no-referrer');
+header('Permissions-Policy: none');
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
-
-new Response()->type(ContentType::JSON());
 
 try {
     new Routes()->register();
