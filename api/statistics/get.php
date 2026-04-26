@@ -31,5 +31,6 @@ echo new PepperResponse()->api(ResponseCode::OK(), json_encode([
         "entries" => $ingredients_partial,
         "with_dietary" => $ingredients_full + $ingredients_alias,
     ],
-    "reviews" => $reviews
+    "reviews" => $reviews,
+    "patchInfo" => "alg"
 ]));
