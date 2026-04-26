@@ -208,7 +208,7 @@ class Authentication
     private function validateToken(string $token): object
     {
         $jwks = $this->getCachedJwks();
-        $keys = JWK::parseKeySet($jwks);
+        $keys = JWK::parseKeySet($jwks, 'RS256');
 
         return JWT::decode($token, $keys);
     }
