@@ -313,7 +313,7 @@ class Authentication
 
         try {
             $jwks = $this->getCachedJwks();
-            $keys = JWK::parseKeySet($jwks);
+            $keys = JWK::parseKeySet($jwks, 'RS256');
             $decoded = JWT::decode($idToken, $keys);
 
             // Standard OIDC ID Token validation
