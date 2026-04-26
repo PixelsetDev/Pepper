@@ -107,7 +107,7 @@ class Authentication
      * @return object|bool The decoded JWT payload if valid.
      * @throws Exception
      */
-    public function authenticate(bool $required = true, array $requiredScopes = []): object|bool
+    public function authenticate(bool $required = true, array $requiredScopes = [], array $requiredRoles = []): object|bool
     {
         $token = $this->getBearerToken();
 
@@ -126,6 +126,13 @@ class Authentication
 
         if (!empty($requiredScopes)) {
             $this->validateScopes($decoded, $requiredScopes);
+        }
+
+        if (!empty($requiredRoles)) {
+            $profile = $this->getProfileFromIdToken();
+            if (empty(array_intersect($profile['roles'] ?? [], $requiredRoles))) {
+                $this->unauthorized('Missing required role');
+            }
         }
 
         return $decoded;
@@ -287,7 +294,7 @@ class Authentication
     #[NoReturn]
     private function unauthorized(string $message): void
     {
-        new PepperResponse()->api(ResponseCode::Unauthorized(), $message);
+        echo new PepperResponse()->api(ResponseCode::Unauthorized(), null, $message);
         exit;
     }
 

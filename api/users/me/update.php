@@ -17,7 +17,7 @@ if (!$decoded) {
 $db = new MySQL(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $data = new Request()->jsonValidated(['activity_privacy', 'email_marketing', 'email_notifications', 'email_reminders', 'email_updates']);
 
-$activity_privacy = $data->activity_privacy ? 0 : 1;
+$activity_privacy = $data->activity_privacy ? 1 : 0;
 $email_marketing = $data->email_marketing ? 1 : 0;
 $email_notifications = $data->email_notifications ? 1 : 0;
 $email_reminders = $data->email_reminders ? 1 : 0;

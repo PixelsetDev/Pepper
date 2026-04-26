@@ -18,6 +18,7 @@ if (!$decoded) {
 
     if ($db->numRows() == 0) {
         $db->run('INSERT INTO users (uuid, name, username, email) VALUES (?,?,?,?)', [$user['sub'], $user['name'], $user['username'], $user['email']]);
+        $db->run('INSERT INTO users_following (`user`, `following`) VALUES (?, ?)', [$user['sub'], 't28gbeih5yxm']);
     } else {
         $db->run('UPDATE users SET name = ?, username = ?, email = ? WHERE uuid = ?', [$user['name'], $user['username'], $user['email'], $user['sub']]);
     }
@@ -27,19 +28,20 @@ if (!$decoded) {
     $preferences = null;
     if ($prefs && $db->numRows() > 0) {
         $preferences = [
-            'activity_privacy'    => (bool) $prefs['activity_privacy'],
-            'email_marketing'     => (bool) $prefs['email_marketing'],
+            'activity_privacy' => (bool) $prefs['activity_privacy'],
+            'email_marketing' => (bool) $prefs['email_marketing'],
             'email_notifications' => (bool) $prefs['email_notifications'],
-            'email_reminders'     => (bool) $prefs['email_reminders'],
-            'email_updates'       => (bool) $prefs['email_updates'],
+            'email_reminders' => (bool) $prefs['email_reminders'],
+            'email_updates' => (bool) $prefs['email_updates'],
         ];
     }
 
     echo new PepperResponse()->api(ResponseCode::Ok(), json_encode([
-        "username"    => $user['username'],
-        "name"        => $user['name'],
-        "email"       => $user['email'],
-        "uuid"        => $user['sub'],
-        "preferences" => $preferences
+        "username" => $user['username'],
+        "name" => $user['name'],
+        "email" => $user['email'],
+        "uuid" => $user['sub'],
+        "preferences" => $preferences,
+        "roles" => $user['roles'],
     ]));
 }
